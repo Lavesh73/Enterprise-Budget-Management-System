@@ -1,14 +1,14 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, Calendar, Car, Briefcase, MessageSquare, HelpCircle, Settings } from 'lucide-react';
 
 const Sidebar = () => {
   const navItems = [
-    { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/admin-dashboard' },
+    { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
+    { name: 'Projects', icon: <Briefcase size={20} />, path: '/projects' },
     { name: 'Org.', icon: <Users size={20} />, path: '/org' },
     { name: 'Calendar', icon: <Calendar size={20} />, path: '/calendar' },
     { name: 'Parkings', icon: <Car size={20} />, path: '/parkings' },
-    { name: 'Recruit', icon: <Briefcase size={20} />, path: '/recruit' },
     { name: 'Notifications', icon: <MessageSquare size={20} />, path: '/notifications' },
   ];
 
@@ -17,8 +17,11 @@ const Sidebar = () => {
     { name: 'Settings', icon: <Settings size={20} />, path: '/settings' },
   ];
 
+  const location = useLocation();
+  const isProjectOpen = location.pathname.startsWith('/projects/') && location.pathname !== '/projects';
+
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <div className={`fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out ${isProjectOpen ? 'bottom-2 scale-75 opacity-70 hover:opacity-100 hover:scale-[0.8]' : 'bottom-6 scale-100 opacity-100'}`}>
       <nav className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-2xl border border-white/20 dark:border-slate-700/50">
         {[...navItems, { isDivider: true }, ...bottomItems].map((item, idx) => {
           if (item.isDivider) {

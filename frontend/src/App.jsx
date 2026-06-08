@@ -11,7 +11,10 @@ import RecruitPage from './pages/RecruitPage';
 import LeavePage from './pages/LeavePage';
 import AttendancePage from './pages/AttendancePage';
 import PerformancePage from './pages/PerformancePage';
+import ProfilePage from './pages/ProfilePage';
 import ProjectsPage from './pages/ProjectsPage';
+import ProjectDetailsPage from './pages/ProjectDetailsPage';
+import ExpenditureManagementPage from './pages/ExpenditureManagementPage';
 import BudgetsPage from './pages/BudgetsPage';
 import HelpPage from './pages/HelpPage';
 import SettingsPage from './pages/SettingsPage';
@@ -32,7 +35,6 @@ function App() {
     <>
       <Router>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<DashboardRedirect />} />
@@ -46,7 +48,11 @@ function App() {
           <Route path="/leave" element={<LeavePage />} />
           <Route path="/attendance" element={<AttendancePage />} />
           <Route path="/performance" element={<PerformancePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/:id" element={<ProjectDetailsPage />} />
+          <Route path="/projects/:id/expenditures" element={<ExpenditureManagementPage />} />
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/help" element={<HelpPage />} />
           <Route path="/settings" element={<SettingsPage />} />

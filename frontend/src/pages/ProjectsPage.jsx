@@ -1,156 +1,143 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { Layers, Users } from 'lucide-react';
+import { Layers, Calendar, DollarSign, Users, ChevronRight, X, UserCheck, Activity, Award } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const ProjectsPage = () => {
-  const [data, setData] = useState([]);
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
-  const [year, setYear] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [completionDate, setCompletionDate] = useState('');
-  const [amount, setAmount] = useState('');
-  const [divisionHeadId, setDivisionHeadId] = useState('');
-  
-  const [users, setUsers] = useState([]);
-  const [groups, setGroups] = useState([]);
-  const [myGroups, setMyGroups] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState('');
   
   const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
-  const isAdmin = userInfo.role === 'admin';
   const isDivisionHead = userInfo.role === 'division_head';
+  const isAdmin = userInfo.role === 'admin';
+  const navigate = useNavigate();
 
-  const fetchData = async () => {
+  const fetchProjects = async () => {
     try {
       const headers = { 'Authorization': `Bearer ${userInfo.token}` };
       const projRes = await fetch('http://localhost:5000/api/projects', { headers });
-      if (projRes.ok) setData(await projRes.json());
-
-      if (isAdmin) {
-        const usersRes = await fetch('http://localhost:5000/api/admin/users', { headers });
-        if (usersRes.ok) setUsers(await usersRes.json());
+      if (projRes.ok) {
+        setProjects(await projRes.json());
       }
-      
-      if (isDivisionHead) {
-        const groupsRes = await fetch('http://localhost:5000/api/division/groups', { headers });
-        if (groupsRes.ok) setMyGroups(await groupsRes.json());
-      }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    if (!userInfo.token) {
+      navigate('/login');
+      return;
+    }
+    fetchProjects(); 
+  }, [navigate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await fetch('http://localhost:5000/api/projects', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userInfo.token}` },
-      body: JSON.stringify({ 
-        project_name: name, project_number: number, year_of_sanction: year, 
-        start_date: startDate, probable_completion_date: completionDate, 
-        sanctioned_amount: parseFloat(amount), division_head_id: divisionHeadId 
-      })
-    });
-    setName(''); setNumber(''); setYear(''); setStartDate(''); setCompletionDate(''); setAmount(''); setDivisionHeadId('');
-    fetchData();
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
   };
 
-  const handleAssignGroup = async (projectId, groupId) => {
-    if (!groupId) return;
-    await fetch(`http://localhost:5000/api/projects/${projectId}/assign-group`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userInfo.token}` },
-      body: JSON.stringify({ group_id: groupId })
-    });
-    fetchData();
+  const handleProjectClick = async (project) => {
+    navigate(`/projects/${project.id}`);
   };
+
+
+
+  if (loading) return <div className="h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">Loading projects...</div>;
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto pt-6 flex flex-col gap-6">
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-pink-50 dark:bg-pink-900/30 rounded-xl"><Layers className="text-pink-600 dark:text-pink-400" /></div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Project Manager</h1>
-              <p className="text-slate-500 text-sm">{isAdmin ? "Create projects and assign division heads." : "Manage your projects and assign working groups."}</p>
-            </div>
+      {toast && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg z-50 animate-in fade-in slide-in-from-top-4">
+          {toast}
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto pt-6 flex flex-col gap-6 relative">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Projects Directory</h1>
+            <p className="text-slate-500 mt-1">Manage, monitor, and oversee all division projects in one place.</p>
           </div>
+          {isDivisionHead && (
+            <button onClick={() => navigate('/employee-dashboard')} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-sm shadow-blue-600/20 transition-all hover:-translate-y-0.5">
+              + New Project
+            </button>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {isAdmin && (
-            <form onSubmit={handleSubmit} className="md:col-span-1 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 h-fit">
-              <h2 className="font-semibold text-slate-800 dark:text-white mb-4">New Project</h2>
-              <input required type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Project Name" className="w-full mb-3 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-              <input required type="text" value={number} onChange={e => setNumber(e.target.value)} placeholder="Project Number" className="w-full mb-3 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-              <input required type="number" value={year} onChange={e => setYear(e.target.value)} placeholder="Year of Sanction" className="w-full mb-3 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-              
-              <label className="text-xs text-slate-500 ml-1">Start Date</label>
-              <input required type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full mb-3 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-              
-              <label className="text-xs text-slate-500 ml-1">Probable Completion</label>
-              <input required type="date" value={completionDate} onChange={e => setCompletionDate(e.target.value)} className="w-full mb-3 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-              
-              <input required type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Sanctioned Amount (₹)" className="w-full mb-4 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-              
-              <select required value={divisionHeadId} onChange={e => setDivisionHeadId(e.target.value)} className="w-full mb-4 px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
-                <option value="">Assign Division Head</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.name} ({u.role.replace('_', ' ')})</option>
-                ))}
-              </select>
-              
-              <button type="submit" className="w-full bg-pink-600 text-white rounded-xl py-2 font-medium hover:bg-pink-700 transition">Create Project</button>
-            </form>
-          )}
+        {/* Projects Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {projects.map(proj => {
+            // Calculate a fake progress for UI purposes if no data, or calculate if we had expenditure in this call.
+            // Since getAll doesn't return expenditures, we'll just show the budget.
+            return (
+              <div 
+                key={proj.id}
+                onClick={() => handleProjectClick(proj)}
+                className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700/60 shadow-sm hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-800/50 transition-all cursor-pointer group flex flex-col h-full"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl group-hover:scale-110 transition-transform">
+                    <Layers size={24} />
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                    proj.status === 'planning' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : 
+                    proj.status === 'active' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 
+                    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                  }`}>
+                    {proj.status}
+                  </span>
+                </div>
+                
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{proj.project_name}</h3>
+                <p className="text-sm font-medium text-slate-500 mb-6">ID: {proj.project_number} • Year: {proj.year_of_sanction}</p>
 
-          <div className={`${isAdmin ? 'md:col-span-3' : 'md:col-span-4'} bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700`}>
-            <h2 className="font-semibold text-slate-800 dark:text-white mb-4">Active Projects</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {data.map(item => (
-                <div key={item.id} className="p-5 border border-slate-100 dark:border-slate-700 rounded-xl flex flex-col gap-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-slate-800 dark:text-white text-lg">{item.project_name} <span className="text-sm font-normal text-slate-500">({item.project_number})</span></h3>
-                      <p className="text-xs text-slate-500 mt-1">Sanctioned {item.year_of_sanction} • Amount: <span className="font-bold text-emerald-600">${item.sanctioned_amount}</span></p>
+                <div className="mt-auto space-y-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                      <DollarSign size={16} /> Budget
                     </div>
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-semibold rounded-full uppercase">{item.status}</span>
+                    <span className="font-bold text-slate-900 dark:text-white">₹{Number(proj.sanctioned_amount).toLocaleString('en-IN')}</span>
                   </div>
                   
-                  <div className="mt-2 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700/50">
-                    <p className="text-sm flex justify-between"><span className="text-slate-500">Start Date:</span> <span className="font-medium text-slate-700 dark:text-slate-300">{new Date(item.start_date).toLocaleDateString()}</span></p>
-                    <p className="text-sm flex justify-between mt-1"><span className="text-slate-500">Completion:</span> <span className="font-medium text-slate-700 dark:text-slate-300">{new Date(item.probable_completion_date).toLocaleDateString()}</span></p>
-                    <hr className="my-2 border-slate-200 dark:border-slate-700" />
-                    <p className="text-sm"><span className="font-semibold text-slate-700 dark:text-slate-300">Division Head:</span> {item.division_head_name || 'Unassigned'}</p>
-                    <p className="text-sm mt-1"><span className="font-semibold text-slate-700 dark:text-slate-300">Working Group:</span> {item.group_name || 'Unassigned'}</p>
-                    <p className="text-sm mt-1"><span className="font-semibold text-slate-700 dark:text-slate-300">Group Leaders:</span> {item.group_leaders || 'None'}</p>
-                    
-                    {isDivisionHead && !item.group_name && (
-                      <div className="mt-3 flex gap-2">
-                        <select id={`group-select-${item.id}`} className="flex-1 px-3 py-1 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
-                          <option value="">Select Group to Assign...</option>
-                          {myGroups.map(g => (
-                            <option key={g.id} value={g.id}>{g.name}</option>
-                          ))}
-                        </select>
-                        <button 
-                          onClick={() => handleAssignGroup(item.id, document.getElementById(`group-select-${item.id}`).value)}
-                          className="bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 px-3 py-1 rounded-lg text-sm font-medium hover:opacity-90"
-                        >
-                          Assign
-                        </button>
-                      </div>
-                    )}
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                      <Calendar size={16} /> Target End
+                    </div>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                      {new Date(proj.probable_completion_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+                    </span>
                   </div>
                 </div>
-              ))}
-              {data.length === 0 && <p className="text-slate-500 text-sm">No active projects found.</p>}
+
+                {proj.project_head_name && (
+                  <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700/50 flex items-center gap-3">
+                    <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${proj.project_head_name}`} alt="Head" className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700" />
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Project Head</p>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{proj.project_head_name}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {projects.length === 0 && (
+            <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl">
+              <Layers className="mx-auto text-slate-400 mb-3" size={48} />
+              <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">No Projects Found</h3>
+              <p className="text-slate-500">You are not assigned to any active projects.</p>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </DashboardLayout>
   );
 };
+
 export default ProjectsPage;

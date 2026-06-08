@@ -6,7 +6,7 @@ const path = require('path');
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const ADMIN_EMAIL = 'jangidlavesh733@gmail.com';
-const DUMMY_PASSWORD = 'password-123456'; // Using requested 'password-123456' OR wait, the user said 'password-123456' but let me re-read... Ah, "keep all of the passwords same(password-123456)".
+const DUMMY_PASSWORD = '123456';
 
 async function seedDb() {
   try {
@@ -56,7 +56,11 @@ async function seedDb() {
         );
         console.log(`Created employee: ${emp.email}`);
       } else {
-        console.log(`Employee ${emp.email} already exists.`);
+        await connection.query(
+          `UPDATE users SET password = ? WHERE email = ?`,
+          [hashedDummyPassword, emp.email]
+        );
+        console.log(`Updated password for existing employee: ${emp.email}`);
       }
     }
 

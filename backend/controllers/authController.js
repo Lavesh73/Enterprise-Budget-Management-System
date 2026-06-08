@@ -40,6 +40,7 @@ exports.register = async (req, res) => {
 
     res.status(201).json({
       _id: userId,
+      id: userId,
       name,
       email,
       role: 'employee',
@@ -74,14 +75,16 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    res.json({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user.id),
-    });
-  } catch (error) {
+      res.json({
+        _id: user.id,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        token: generateToken(user.id),
+      });
+    } catch (error) {
     console.error('Login Error:', error);
     res.status(500).json({ message: 'Server error during login' });
   }
@@ -141,3 +144,50 @@ exports.googleAuth = async (req, res) => {
     res.status(401).json({ message: 'Google Authentication Failed' });
   }
 };
+
+exports.updateProfile = async (req, res) => {
+    try {
+      const { name, password, avatar } = req.body;
+      const userId = req.user.id;
+
+      // Ensure user exists
+      const query = `SELECT * FROM users WHERE id = ?`;
+      const [rows] = await require('../config/db').execute(query, [userId]);
+      const user = rows[0];
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      let newPassword = user.password;
+      if (password) {
+        const salt = await bcrypt.genSalt(10);
+        newPassword = await bcrypt.hash(password, salt);
+      }
+
+      const updateQuery = `
+        UPDATE users 
+        SET name = ?, password = ?, avatar = ? 
+        WHERE id = ?
+      `;
+      await require('../config/db').execute(updateQuery, [
+        name || user.name, 
+        newPassword, 
+        avatar !== undefined ? avatar : user.avatar, 
+        userId
+      ]);
+
+      res.status(200).json({
+        _id: user.id,
+        name: name || user.name,
+        email: user.email,
+        role: user.role,
+        avatar: avatar !== undefined ? avatar : user.avatar,
+        token: generateToken(userId), // Refresh token
+        message: 'Profile updated successfully'
+      });
+    } catch (error) {
+      console.error('Update Profile Error:', error);
+      res.status(500).json({ message: 'Server error during profile update' });
+    }
+  };

@@ -1,13 +1,14 @@
 const Group = require('../models/groupModel');
 const User = require('../models/userModel');
+const ApprovalRequest = require('../models/approvalRequestModel');
 
 const createGroup = async (req, res) => {
   const { name } = req.body;
   try {
-    const groupId = await Group.create({ name, division_head_id: req.user.id });
-    res.status(201).json({ id: groupId, name, division_head_id: req.user.id });
+    await ApprovalRequest.create(req.user.id, 'CREATE_GROUP', { name });
+    res.status(202).json({ message: 'Request to create group sent to admin for approval' });
   } catch (error) {
-    console.error('Error creating group:', error);
+    console.error('Error requesting group creation:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -44,10 +45,10 @@ const assignToGroup = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized for this group' });
     }
 
-    await User.updateGroupId(userId, groupId);
-    res.json({ message: 'User assigned to group successfully' });
+    await ApprovalRequest.create(req.user.id, 'ASSIGN_EMPLOYEE', { userId, groupId, userName: user.name, groupName: group.name });
+    res.status(202).json({ message: 'Request to assign user sent to admin for approval' });
   } catch (error) {
-    console.error('Error assigning user to group:', error);
+    console.error('Error requesting user assignment:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -68,10 +69,10 @@ const promoteToGroupHead = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized for this group' });
     }
 
-    await User.updateRole(userId, 'group_head');
-    res.json({ message: 'User promoted to Group Head successfully' });
+    await ApprovalRequest.create(req.user.id, 'PROMOTE_GROUP_HEAD', { userId, userName: user.name, groupName: group.name });
+    res.status(202).json({ message: 'Request to promote user sent to admin for approval' });
   } catch (error) {
-    console.error('Error promoting user:', error);
+    console.error('Error requesting promotion:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -88,5 +89,16 @@ const getUnassignedEmployees = async (req, res) => {
   }
 };
 
+// Get pending requests for the division head
+const getMyRequests = async (req, res) => {
+  try {
+    const requests = await ApprovalRequest.findByRequester(req.user.id);
+    res.json(requests);
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
-module.exports = { createGroup, getMyGroups, assignToGroup, promoteToGroupHead, getUnassignedEmployees };
+
+module.exports = { createGroup, getMyGroups, assignToGroup, promoteToGroupHead, getUnassignedEmployees, getMyRequests };

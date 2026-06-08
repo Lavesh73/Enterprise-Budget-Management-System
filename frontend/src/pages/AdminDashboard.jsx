@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { Clock, LogOut, CheckCircle2, ClipboardList } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { BentoDemo } from '../components/BentoDemo';
 
 const AdminDashboard = () => {
@@ -12,6 +14,7 @@ const AdminDashboard = () => {
   const [performance, setPerformance] = useState([]);
   const [projects, setProjects] = useState([]);
   const [budgets, setBudgets] = useState([]);
+  const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All Employees');
   
@@ -30,13 +33,14 @@ const AdminDashboard = () => {
     try {
       const headers = { 'Authorization': `Bearer ${userInfo.token}` };
       
-      const [empRes, attRes, leavesRes, perfRes, projRes, budgRes] = await Promise.all([
+      const [empRes, attRes, leavesRes, perfRes, projRes, budgRes, apprRes] = await Promise.all([
         fetch('http://localhost:5000/api/admin/employees', { headers }),
         fetch('http://localhost:5000/api/modules/attendance', { headers }),
         fetch('http://localhost:5000/api/modules/leaves', { headers }),
         fetch('http://localhost:5000/api/modules/performance', { headers }),
         fetch('http://localhost:5000/api/projects', { headers }),
-        fetch('http://localhost:5000/api/budgets', { headers })
+        fetch('http://localhost:5000/api/budgets', { headers }),
+        fetch('http://localhost:5000/api/admin/approvals', { headers })
       ]);
 
       if (empRes.ok) setEmployees(await empRes.json());
@@ -45,6 +49,7 @@ const AdminDashboard = () => {
       if (perfRes.ok) setPerformance(await perfRes.json());
       if (projRes.ok) setProjects(await projRes.json());
       if (budgRes.ok) setBudgets(await budgRes.json());
+      if (apprRes.ok) setApprovals(await apprRes.json());
     } catch (err) {
       console.error(err);
     } finally {
@@ -61,6 +66,66 @@ const AdminDashboard = () => {
       if (response.ok) fetchDashboardData();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleResolveApproval = async (id, action) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/admin/approvals/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userInfo.token}` },
+        body: JSON.stringify({ action })
+      });
+      if (response.ok) fetchDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const downloadProjectReport = async (projectId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/projects/${projectId}/details`, {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch details');
+      const project = await response.json();
+      
+      const doc = new jsPDF();
+      doc.setFontSize(20);
+      doc.text(`Project Report: ${project.project_name}`, 14, 22);
+      
+      doc.setFontSize(12);
+      doc.text(`Project Number: ${project.project_number}`, 14, 32);
+      doc.text(`Division Head: ${project.division_head_name || 'N/A'}`, 14, 40);
+      doc.text(`Sanctioned Amount: $${project.sanctioned_amount}`, 14, 48);
+      doc.text(`Start Date: ${new Date(project.start_date).toLocaleDateString()}`, 14, 56);
+      doc.text(`Completion Date: ${new Date(project.probable_completion_date).toLocaleDateString()}`, 14, 64);
+      
+      doc.text(`Team Members (${project.members?.length || 0}/15):`, 14, 80);
+      
+      const tableData = project.members?.map(m => [m.name, m.email, m.role]) || [];
+      doc.autoTable({
+        startY: 85,
+        head: [['Name', 'Email', 'Role']],
+        body: tableData,
+      });
+
+      if (project.expenditures && project.expenditures.length > 0) {
+        doc.text('Expenditures:', 14, doc.lastAutoTable.finalY + 15);
+        const expData = project.expenditures.map(ex => [
+          ex.major_head, ex.minor_head, `$${ex.amount_spent}`, new Date(ex.date).toLocaleDateString(), ex.details
+        ]);
+        doc.autoTable({
+          startY: doc.lastAutoTable.finalY + 20,
+          head: [['Major Head', 'Minor Head', 'Amount Spent', 'Date', 'Details']],
+          body: expData,
+        });
+      }
+      
+      doc.save(`${project.project_name.replace(/\\s+/g, '_')}_Report.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert('Error downloading report');
     }
   };
 
@@ -238,9 +303,21 @@ const AdminDashboard = () => {
               className={`${activeTab === 'Group Heads' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent'} pb-2 font-semibold text-sm transition-colors whitespace-nowrap`}>
               Group Heads
             </button>
+            <button 
+              onClick={() => setActiveTab('Approvals')}
+              className={`${activeTab === 'Approvals' ? 'text-amber-600 dark:text-amber-400 border-b-2 border-amber-600 dark:border-amber-400' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent'} pb-2 font-semibold text-sm transition-colors whitespace-nowrap flex items-center gap-2`}>
+              Approvals
+              {approvals.length > 0 && <span className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">{approvals.length}</span>}
+            </button>
+            <button 
+              onClick={() => setActiveTab('Projects')}
+              className={`${activeTab === 'Projects' ? 'text-green-600 dark:text-green-400 border-b-2 border-green-600 dark:border-green-400' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent'} pb-2 font-semibold text-sm transition-colors whitespace-nowrap`}>
+              Projects
+            </button>
           </div>
 
           <div className="overflow-x-auto flex-1">
+            {activeTab === 'All Employees' || activeTab === 'Division Heads' || activeTab === 'Group Heads' ? (
             <table className="w-full text-sm text-left">
               <thead className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
                 <tr>
@@ -296,6 +373,77 @@ const AdminDashboard = () => {
                 )})}
               </tbody>
             </table>
+            ) : activeTab === 'Approvals' ? (
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                <tr>
+                  <th className="px-4 py-3 font-medium rounded-l-lg whitespace-nowrap">Requester</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Type</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Details</th>
+                  <th className="px-4 py-3 font-medium text-right rounded-r-lg whitespace-nowrap">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {approvals.length === 0 && <tr><td colSpan="4" className="text-center py-6 text-slate-500">No pending approvals.</td></tr>}
+                {approvals.map(appr => {
+                  const details = typeof appr.details === 'string' ? JSON.parse(appr.details) : appr.details;
+                  let desc = '';
+                  if (appr.type === 'CREATE_GROUP') desc = `Create group "${details.name}"`;
+                  if (appr.type === 'ASSIGN_EMPLOYEE') desc = `Assign ${details.userName} to ${details.groupName}`;
+                  if (appr.type === 'PROMOTE_GROUP_HEAD') desc = `Promote ${details.userName}`;
+
+                  return (
+                    <tr key={appr.id} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${appr.requester_name}`} alt={appr.requester_name} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 shrink-0" />
+                          <p className="font-semibold text-slate-900 dark:text-white truncate">{appr.requester_name}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                          {appr.type.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">{desc}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => handleResolveApproval(appr.id, 'approve')} className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">Approve</button>
+                          <button onClick={() => handleResolveApproval(appr.id, 'reject')} className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 text-xs font-semibold rounded-lg transition-colors">Reject</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            ) : activeTab === 'Projects' ? (
+            <table className="w-full text-sm text-left">
+              <thead className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                <tr>
+                  <th className="px-4 py-3 font-medium rounded-l-lg whitespace-nowrap">Project Name</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Division Head</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap">Amount</th>
+                  <th className="px-4 py-3 font-medium text-right rounded-r-lg whitespace-nowrap">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {projects.length === 0 && <tr><td colSpan="4" className="text-center py-6 text-slate-500">No projects created yet.</td></tr>}
+                {projects.map(proj => (
+                  <tr key={proj.id} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">{proj.project_name}</td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{proj.division_head_name || 'N/A'}</td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">${proj.sanctioned_amount}</td>
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => downloadProjectReport(proj.id)} className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+                        Download PDF
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            ) : null}
           </div>
         </div>
 

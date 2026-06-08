@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { createGroup, getMyGroups, assignToGroup, promoteToGroupHead, getUnassignedEmployees } = require('../controllers/divisionController');
+const { createGroup, getMyGroups, assignToGroup, promoteToGroupHead, getUnassignedEmployees, getMyRequests } = require('../controllers/divisionController');
+const { createDivisionProject } = require('../controllers/projectsController');
 const { protect } = require('../middleware/authMiddleware');
 
 // Middleware to check if user is division head
@@ -17,5 +18,7 @@ router.get('/groups', protect, divisionHeadOnly, getMyGroups);
 router.get('/unassigned', protect, divisionHeadOnly, getUnassignedEmployees);
 router.put('/assign-group/:userId', protect, divisionHeadOnly, assignToGroup);
 router.put('/promote-group-head/:userId', protect, divisionHeadOnly, promoteToGroupHead);
+router.get('/requests', protect, divisionHeadOnly, getMyRequests);
+router.post('/projects', protect, divisionHeadOnly, createDivisionProject);
 
 module.exports = router;
