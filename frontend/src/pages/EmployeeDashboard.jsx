@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { Clock, LogOut, CheckCircle2, ClipboardList, Users, UserPlus, ShieldAlert, Check, X } from 'lucide-react';
+import { Users, LogOut, CheckCircle2, FileText, ChevronRight, Briefcase, IndianRupee, PieChart, Bell, ArrowRight, UserCheck, ShieldCheck, Mail, Calendar, FolderClock, Clock, ClipboardList, ShieldAlert, UserPlus, Check, X } from 'lucide-react';
+import Toast from '../components/ui/Toast';
 
 const EmployeeDashboard = () => {
   const [groups, setGroups] = useState([]);
@@ -24,6 +25,7 @@ const EmployeeDashboard = () => {
   const [expenditureData, setExpenditureData] = useState({
     project_id: '', major_head: '', minor_head: '', amount_spent: '', date: '', details: ''
   });
+  const [projectExpenditures, setProjectExpenditures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState('');
   const [isCreatingProject, setIsCreatingProject] = useState(false);
@@ -86,6 +88,27 @@ const EmployeeDashboard = () => {
       setLoading(false);
     }
   };
+
+  const fetchProjectExpenditures = async (projectId) => {
+    if (!projectId) {
+      setProjectExpenditures([]);
+      return;
+    }
+    try {
+      const res = await fetch(`http://localhost:5000/api/expenditures/project/${projectId}`, {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+      });
+      if (res.ok) {
+        setProjectExpenditures(await res.json());
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjectExpenditures(expenditureData.project_id);
+  }, [expenditureData.project_id]);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -198,8 +221,11 @@ const EmployeeDashboard = () => {
         body: JSON.stringify(expenditureData)
       });
       if (response.ok) {
-        setExpenditureData({ project_id: '', major_head: '', minor_head: '', amount_spent: '', date: '', details: '' });
+        setExpenditureData({ ...expenditureData, major_head: '', minor_head: '', amount_spent: '', date: '', details: '' });
         showToast('Expenditure logged successfully');
+        fetchProjectExpenditures(expenditureData.project_id);
+        if (userInfo.role === 'division_head') fetchDivisionData();
+        else fetchEmployeeData();
       } else {
         const data = await response.json();
         showToast(data.message || 'Error logging expenditure');
@@ -224,11 +250,7 @@ const EmployeeDashboard = () => {
 
     return (
       <DashboardLayout>
-        {toast && (
-          <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg z-50 flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
-            <CheckCircle2 size={16} /> {toast}
-          </div>
-        )}
+        <Toast message={toast} />
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
@@ -301,7 +323,7 @@ const EmployeeDashboard = () => {
                 <form onSubmit={handleAddExpenditure} className="flex flex-col gap-3 relative z-10">
                   <select required value={expenditureData.project_id} onChange={(e) => setExpenditureData({...expenditureData, project_id: e.target.value})} className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm">
                     <option value="" disabled>Select Project...</option>
-                    {projects.filter(p => p.project_head_id == (userInfo.id || userInfo._id)).map(p => <option key={p.id} value={p.id}>{p.project_name}</option>)}
+                    {projects.filter(p => p.project_head_id == (userInfo.id || userInfo._id)).map(p => <option key={p.id} value={p.id}>{p.project_number} - {p.project_name}</option>)}
                   </select>
                   
                   {(() => {
@@ -368,11 +390,7 @@ const EmployeeDashboard = () => {
 
   return (
     <DashboardLayout>
-      {toast && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg z-50 flex items-center gap-2">
-          <CheckCircle2 size={16} /> {toast}
-        </div>
-      )}
+      <Toast message={toast} />
 
       {/* Header Area */}
       <div className="flex justify-between items-start mb-6">
@@ -558,28 +576,82 @@ const EmployeeDashboard = () => {
             </form>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm mb-6 lg:col-span-1">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Log Project Expenditure</h2>
-            <form onSubmit={handleAddExpenditure} className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <select required value={expenditureData.project_id} onChange={(e) => setExpenditureData({...expenditureData, project_id: e.target.value})} className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500 text-sm">
-                  <option value="" disabled>Select Project...</option>
-                  {projects.map(p => <option key={p.id} value={p.id}>{p.project_name}</option>)}
-                </select>
-                <input type="text" placeholder="Major Head" required value={expenditureData.major_head} onChange={(e) => setExpenditureData({...expenditureData, major_head: e.target.value})} className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500 text-sm" />
-                <input type="text" placeholder="Minor Head" required value={expenditureData.minor_head} onChange={(e) => setExpenditureData({...expenditureData, minor_head: e.target.value})} className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500 text-sm" />
-                <input type="number" placeholder="Amount Spent" required value={expenditureData.amount_spent} onChange={(e) => setExpenditureData({...expenditureData, amount_spent: e.target.value})} className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500 text-sm" />
-                <div className="flex flex-col">
-                  <label className="text-xs text-slate-500 mb-1">Date</label>
-                  <input type="date" required value={expenditureData.date} onChange={(e) => setExpenditureData({...expenditureData, date: e.target.value})} className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500 text-sm" />
-                </div>
-                <input type="text" placeholder="Details" value={expenditureData.details} onChange={(e) => setExpenditureData({...expenditureData, details: e.target.value})} className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:border-blue-500 text-sm" />
-              </div>
-              <button type="submit" className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-colors mt-2">
-                Add Expenditure
-              </button>
+            <form onSubmit={handleAddExpenditure} className="flex flex-col gap-3 relative z-10">
+              <select required value={expenditureData.project_id} onChange={(e) => setExpenditureData({...expenditureData, project_id: e.target.value})} className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm">
+                <option value="" disabled>Select Project...</option>
+                {projects.filter(p => p.division_head_id == (userInfo.id || userInfo._id) || p.project_head_id == (userInfo.id || userInfo._id)).map(p => <option key={p.id} value={p.id}>{p.project_number} - {p.project_name}</option>)}
+              </select>
+
+              {(() => {
+                const selectedProj = projects.find(p => p.id == expenditureData.project_id);
+                if (!selectedProj) return null;
+                const sBudget = Number(selectedProj.sanctioned_amount);
+                const sSpent = Number(selectedProj.total_spent || 0);
+                const sRem = sBudget - sSpent;
+                return (
+                  <div className="bg-slate-100 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200 dark:border-slate-700/50 flex justify-between items-center text-xs">
+                    <div>
+                      <p className="text-slate-500 uppercase tracking-wider font-bold text-[9px] mb-0.5">Budget</p>
+                      <p className="font-bold text-slate-900 dark:text-white">₹{sBudget.toLocaleString('en-IN')}</p>
+                    </div>
+                    <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
+                    <div>
+                      <p className="text-slate-500 uppercase tracking-wider font-bold text-[9px] mb-0.5">Spent</p>
+                      <p className="font-bold text-rose-500">₹{sSpent.toLocaleString('en-IN')}</p>
+                    </div>
+                    <div className="w-px h-6 bg-slate-200 dark:bg-slate-700"></div>
+                    <div>
+                      <p className="text-slate-500 uppercase tracking-wider font-bold text-[9px] mb-0.5">Remaining</p>
+                      <p className="font-bold text-emerald-500">₹{sRem.toLocaleString('en-IN')}</p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {expenditureData.project_id && (
+                <>
+                  <input type="text" placeholder="Major Head" required value={expenditureData.major_head} onChange={(e) => setExpenditureData({...expenditureData, major_head: e.target.value})} className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm" />
+                  <input type="text" placeholder="Minor Head" required value={expenditureData.minor_head} onChange={(e) => setExpenditureData({...expenditureData, minor_head: e.target.value})} className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm" />
+                  <input type="number" placeholder="Amount Spent (₹)" required value={expenditureData.amount_spent} onChange={(e) => setExpenditureData({...expenditureData, amount_spent: e.target.value})} className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm" />
+                  <div className="flex flex-col">
+                    <label className="text-[10px] text-slate-500 mb-1 font-bold uppercase tracking-wider ml-1">Date</label>
+                    <input type="date" required value={expenditureData.date} onChange={(e) => setExpenditureData({...expenditureData, date: e.target.value})} className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm" />
+                  </div>
+                  <input type="text" placeholder="Details (Optional)" value={expenditureData.details} onChange={(e) => setExpenditureData({...expenditureData, details: e.target.value})} className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm" />
+                  <button type="submit" className="w-full py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98] mt-2">
+                    Commit to Ledger
+                  </button>
+                </>
+              )}
             </form>
           </div>
+
+          <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm mb-6 lg:col-span-1 flex flex-col h-[480px]">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Transaction History</h2>
+            <div className="flex-1 overflow-y-auto border border-slate-100 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 p-2 space-y-2">
+              {expenditureData.project_id ? (
+                projectExpenditures.length > 0 ? (
+                  projectExpenditures.map(exp => (
+                    <div key={exp.id} className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 flex justify-between items-center text-sm shadow-sm">
+                      <div>
+                        <p className="font-bold text-slate-900 dark:text-white text-base">{exp.major_head}</p>
+                        <p className="text-xs text-slate-500 mt-1">{exp.minor_head} • {new Date(exp.date).toLocaleDateString('en-GB')}</p>
+                      </div>
+                      <p className="font-bold text-rose-500 whitespace-nowrap text-lg">₹{Number(exp.amount_spent).toLocaleString('en-IN')}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="h-full flex items-center justify-center text-slate-500 text-sm">No transactions found</div>
+                )
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-500 text-sm">Select a project to view history</div>
+              )}
+            </div>
+          </div>
+        </div>
 
           {/* Group Members */}
           <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm overflow-hidden flex-1">
@@ -663,9 +735,11 @@ const EmployeeDashboard = () => {
                     <div key={req.id} className="p-3 border border-slate-100 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                       <div className="flex justify-between items-start mb-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{req.type.replace(/_/g, ' ')}</span>
-                        {isPending && <span className="flex items-center gap-1 text-[10px] font-bold text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded-full"><Clock size={10} /> Pending</span>}
-                        {isApproved && <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full"><Check size={10} /> Approved</span>}
-                        {!isPending && !isApproved && <span className="flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-full"><X size={10} /> Rejected</span>}
+                        <div className="ml-2 flex flex-col items-end">
+                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${req.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : req.status === 'approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'}`}>
+                            {req.status}
+                          </span>
+                        </div>
                       </div>
                       <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{desc}</p>
                       <p className="text-[10px] text-slate-400 mt-2">{new Date(req.created_at).toLocaleString()}</p>

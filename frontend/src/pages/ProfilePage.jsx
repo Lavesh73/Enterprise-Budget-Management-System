@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { Camera, CheckCircle2, User as UserIcon, Lock, Mail, Save } from 'lucide-react';
+import Toast from '../components/ui/Toast';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -92,11 +93,7 @@ const ProfilePage = () => {
 
   return (
     <DashboardLayout>
-      {toast && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg z-50 flex items-center gap-2">
-          <CheckCircle2 size={16} /> {toast}
-        </div>
-      )}
+      <Toast message={toast} />
 
       <div className="max-w-3xl mx-auto mt-8">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">My Profile</h1>

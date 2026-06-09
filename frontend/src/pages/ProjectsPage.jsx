@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { Layers, Calendar, DollarSign, Users, ChevronRight, X, UserCheck, Activity, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Toast from '../components/ui/Toast';
 
 const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
@@ -50,11 +51,7 @@ const ProjectsPage = () => {
 
   return (
     <DashboardLayout>
-      {toast && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg z-50 animate-in fade-in slide-in-from-top-4">
-          {toast}
-        </div>
-      )}
+      <Toast message={toast} />
 
       <div className="max-w-7xl mx-auto pt-6 flex flex-col gap-6 relative">
         {/* Header */}

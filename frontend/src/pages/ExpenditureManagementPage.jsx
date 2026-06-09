@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { ArrowLeft, Trash2, PlusCircle, CheckCircle2, AlertCircle } from 'lucide-react';
+import Toast from '../components/ui/Toast';
 
 const ExpenditureManagementPage = () => {
   const { id } = useParams();
@@ -121,11 +122,7 @@ const ExpenditureManagementPage = () => {
 
   return (
     <DashboardLayout>
-      {toast && (
-        <div className="fixed top-4 right-4 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl z-50 flex items-center gap-2 animate-in fade-in slide-in-from-top-4 border border-slate-700">
-          <CheckCircle2 size={18} className="text-emerald-400" /> {toast}
-        </div>
-      )}
+      <Toast message={toast} />
 
       <div className="max-w-7xl mx-auto p-4 sm:p-8">
         <button 

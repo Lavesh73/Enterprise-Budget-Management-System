@@ -25,13 +25,20 @@ const resolveApproval = async (req, res) => {
     if (action === 'reject') {
       await ApprovalRequest.updateStatus(id, 'rejected');
       // Create notification
-      await db.query(`INSERT INTO notifications (user_id, message, type) VALUES (?, ?, 'approval_rejected')`, 
+      await db.query(`INSERT INTO notifications (user_id, name, description, icon, color) VALUES (?, 'Admin', ?, 'x-circle', 'red')`, 
         [request.requester_id, `Your request to ${request.type} was rejected by Admin.`]);
       return res.json({ message: 'Request rejected' });
     }
 
     if (action === 'approve') {
-      const details = request.details;
+      let details = request.details;
+      if (typeof details === 'string') {
+        try {
+          details = JSON.parse(details);
+        } catch (e) {
+          console.error("Failed to parse details:", e);
+        }
+      }
       
       if (request.type === 'CREATE_GROUP') {
         await Group.create({ name: details.name, division_head_id: request.requester_id });
@@ -46,7 +53,7 @@ const resolveApproval = async (req, res) => {
       await ApprovalRequest.updateStatus(id, 'approved');
       
       // Create notification
-      await db.query(`INSERT INTO notifications (user_id, message, type) VALUES (?, ?, 'approval_approved')`, 
+      await db.query(`INSERT INTO notifications (user_id, name, description, icon, color) VALUES (?, 'Admin', ?, 'check-circle', 'green')`, 
         [request.requester_id, `Your request to ${request.type} was approved by Admin.`]);
 
       return res.json({ message: 'Request approved successfully' });

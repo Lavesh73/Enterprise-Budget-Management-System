@@ -17,6 +17,7 @@ const projectsController = {
           p.status, 
           p.created_at,
           p.project_head_id,
+          p.division_head_id,
           u.name AS division_head_name,
           g.name AS group_name,
           u3.name AS project_head_name,

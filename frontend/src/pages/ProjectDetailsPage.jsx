@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import { Activity, Users, ArrowLeft, Calendar, FileText, IndianRupee, Award, UserCheck, Clock, CheckCircle2, TrendingUp, AlertTriangle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend } from 'recharts';
+import Toast from '../components/ui/Toast';
 
 const ProjectDetailsPage = () => {
   const { id } = useParams();
@@ -113,11 +114,7 @@ const ProjectDetailsPage = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#020817] text-slate-900 dark:text-slate-100 font-sans pb-32">
       {/* Toast Notification */}
-      {toast && (
-        <div className="fixed top-6 right-6 bg-green-500 text-white px-6 py-3 rounded-2xl shadow-xl z-50 animate-in fade-in slide-in-from-top-4 font-medium">
-          {toast}
-        </div>
-      )}
+      <Toast message={toast} />
 
       {/* Hero Header Area (No Topbar) */}
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pt-8 pb-12 px-6 sm:px-12 relative overflow-hidden">
