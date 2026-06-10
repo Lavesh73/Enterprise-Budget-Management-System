@@ -10,6 +10,7 @@ const projectRoutes = require('./routes/projectRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const expendituresRoutes = require('./routes/expendituresRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const geminiRoutes = require('./routes/geminiRoutes');
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/expenditures', expendituresRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/gemini', geminiRoutes);
 
 const PORT = process.env.PORT || 5000;
 
