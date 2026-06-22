@@ -1,0 +1,47 @@
+======================================================
+PROJECT SETUP INSTRUCTIONS
+======================================================
+
+Hello! Here are the steps to easily get this project running on your computer.
+
+Prerequisites:
+- Node.js installed
+- MySQL Server (e.g., XAMPP, WAMP, or standalone MySQL)
+
+------------------------------------------------------
+STEP 1: DATABASE SETUP
+------------------------------------------------------
+1. Open your database management tool (like phpMyAdmin or MySQL Workbench).
+2. Create a brand new database and name it exactly:
+   enterprise_budget
+3. Select this new database, go to the "Import" tab, and import the "enterprise_budget.sql" file provided in this folder.
+
+------------------------------------------------------
+STEP 2: BACKEND SETUP
+------------------------------------------------------
+1. Ensure the provided ".env" file has been placed directly inside the "backend" folder. 
+2. Open your terminal or command prompt.
+3. Navigate into the "backend" directory:
+   cd backend
+4. Install all the required Node packages by running:
+   npm install
+5. Start the backend server by running:
+   npm run dev
+
+If successful, you will see a message saying "Server is running on port 5000" and "Connected to MySQL database!".
+
+------------------------------------------------------
+STEP 3: FRONTEND SETUP
+------------------------------------------------------
+1. Open a NEW terminal window (keep the backend terminal running in the background).
+2. Navigate into the "frontend" directory:
+   cd frontend
+3. Install all the required React packages by running:
+   npm install
+4. Start the frontend development server by running:
+   npm run dev
+
+The terminal will provide a local URL (usually http://localhost:5173). 
+Hold 'Ctrl' and click that link, or copy and paste it into your web browser to view the application!
+
+======================================================
