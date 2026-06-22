@@ -18,4 +18,11 @@ router.route('/notifications')
 router.route('/notifications/:id')
   .delete(protect, featureController.deleteNotification);
 
+router.route('/tickets')
+  .post(protect, featureController.addTicket)
+  .get(protect, featureController.getTickets);
+
+router.route('/tickets/:id')
+  .delete(protect, featureController.deleteTicket);
+
 module.exports = router;

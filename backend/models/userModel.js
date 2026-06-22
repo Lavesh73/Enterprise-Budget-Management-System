@@ -17,7 +17,7 @@ class User {
   }
 
   static async findById(id) {
-    const query = `SELECT id, name, email, role, group_id, created_at FROM users WHERE id = ?`;
+    const query = `SELECT id, name, email, role, group_id, email_notifications, theme_preference, created_at FROM users WHERE id = ?`;
     const [rows] = await db.execute(query, [id]);
     return rows[0];
   }

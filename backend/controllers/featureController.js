@@ -81,6 +81,48 @@ const featureController = {
       console.error(error);
       res.status(500).json({ message: 'Server error' });
     }
+  },
+
+  // Support Tickets
+  addTicket: async (req, res) => {
+    try {
+      const { subject, description, priority } = req.body;
+      const user_id = req.user.id;
+      if (!subject || !description) return res.status(400).json({ message: 'Subject and description are required' });
+      
+      const db = require('../config/db');
+      await db.query(`INSERT INTO support_tickets (user_id, subject, description, priority) VALUES (?, ?, ?, ?)`, 
+        [user_id, subject, description, priority || 'medium']);
+      res.status(201).json({ message: 'Ticket created successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  },
+
+  getTickets: async (req, res) => {
+    try {
+      const user_id = req.user.id;
+      const db = require('../config/db');
+      const [tickets] = await db.query(`SELECT * FROM support_tickets WHERE user_id = ? ORDER BY created_at DESC`, [user_id]);
+      res.status(200).json(tickets);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  },
+
+  deleteTicket: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user_id = req.user.id;
+      const db = require('../config/db');
+      await db.query(`DELETE FROM support_tickets WHERE id = ? AND user_id = ?`, [id, user_id]);
+      res.status(200).json({ message: 'Ticket deleted successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
   }
 };
 

@@ -18,7 +18,7 @@ import ExpenditureManagementPage from './pages/ExpenditureManagementPage';
 import BudgetsPage from './pages/BudgetsPage';
 import HelpPage from './pages/HelpPage';
 import SettingsPage from './pages/SettingsPage';
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { LightRays } from "@/components/ui/light-rays";
 
 const DashboardRedirect = () => {
   const userInfoStr = localStorage.getItem('userInfo');
@@ -33,6 +33,9 @@ const DashboardRedirect = () => {
 function App() {
   return (
     <>
+      <div className="fixed inset-0 pointer-events-none z-0 hidden dark:block">
+        <LightRays />
+      </div>
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />

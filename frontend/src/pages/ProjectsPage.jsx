@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { Layers, Calendar, DollarSign, Users, ChevronRight, X, UserCheck, Activity, Award } from 'lucide-react';
+import { Layers, Calendar, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Toast from '../components/ui/Toast';
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
@@ -63,13 +63,16 @@ const Register = () => {
         body: JSON.stringify({ credential: credentialResponse.credential }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Google Auth Failed');
-      
-      localStorage.setItem('userInfo', JSON.stringify(data));
-      alert('Registration/Login via Google successful!');
-      navigate('/dashboard');
+      if (response.ok) {
+        localStorage.setItem('userInfo', JSON.stringify(data));
+        alert('Registration successful! Redirecting to Dashboard...');
+        navigate('/dashboard');
+      } else {
+        setError(data.message || 'Registration failed');
+      }
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      setError('Server error');
     }
   };
 

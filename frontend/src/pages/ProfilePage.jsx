@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { Camera, CheckCircle2, User as UserIcon, Lock, Mail, Save } from 'lucide-react';
+import { Camera, User as UserIcon, Lock, Mail, Save } from 'lucide-react';
 import Toast from '../components/ui/Toast';
 
 const ProfilePage = () => {

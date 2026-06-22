@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { Users, LogOut, CheckCircle2, FileText, ChevronRight, Briefcase, IndianRupee, PieChart, Bell, ArrowRight, UserCheck, ShieldCheck, Mail, Calendar, FolderClock, Clock, ClipboardList, ShieldAlert, UserPlus, Check, X } from 'lucide-react';
+import { Users, LogOut, Clock, ClipboardList, ShieldAlert, UserPlus } from 'lucide-react';
 import Toast from '../components/ui/Toast';
 
 const EmployeeDashboard = () => {
@@ -148,9 +148,13 @@ const EmployeeDashboard = () => {
         setAssignGroup('');
         fetchDivisionData();
         showToast('Request to assign employee sent to Admin');
+      } else {
+        const data = await response.json();
+        showToast(data.message || 'Error proposing assignment');
       }
     } catch (err) {
       console.error(err);
+      showToast('Server error');
     }
   };
 
@@ -163,9 +167,13 @@ const EmployeeDashboard = () => {
       if (response.ok) {
         fetchDivisionData();
         showToast('Request to promote to Group Head sent to Admin');
+      } else {
+        const data = await response.json();
+        showToast(data.message || 'Error proposing promotion');
       }
     } catch (err) {
       console.error(err);
+      showToast('Server error');
     }
   };
 

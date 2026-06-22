@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { Briefcase, ChevronRight, ChevronLeft, Trash2, UserPlus } from 'lucide-react';
+import { Briefcase, Trash2, UserPlus } from 'lucide-react';
 
 const RecruitPage = () => {
   const [data, setData] = useState([]);

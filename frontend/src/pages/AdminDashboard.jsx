@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { Clock, LogOut, CheckCircle2, ClipboardList } from 'lucide-react';
@@ -122,10 +122,9 @@ const AdminDashboard = () => {
         });
       }
       
-      doc.save(`${project.project_name.replace(/\\s+/g, '_')}_Report.pdf`);
+      doc.save(`${project.project_name.replace(/\s+/g, '_')}_Report.pdf`);
     } catch (err) {
       console.error(err);
-      alert('Error downloading report');
     }
   };
 

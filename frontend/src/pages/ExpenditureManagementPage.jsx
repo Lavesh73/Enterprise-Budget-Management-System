@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { ArrowLeft, Trash2, PlusCircle, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
 import Toast from '../components/ui/Toast';
 
 const ExpenditureManagementPage = () => {

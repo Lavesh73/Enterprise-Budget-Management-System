@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { AnimatedList } from "@/components/ui/animated-list";
 import { Plus, Trash2 } from 'lucide-react';

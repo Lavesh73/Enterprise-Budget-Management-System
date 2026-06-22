@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react"
-import { CalendarIcon, FileTextIcon, HeartIcon } from "@radix-ui/react-icons"
-import { BellIcon, Plus, Layers, IndianRupee } from "lucide-react"
+import { useState, useEffect } from "react"
+import { CalendarIcon } from "@radix-ui/react-icons"
+import { BellIcon, Layers, IndianRupee } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import { AnimatedList } from "@/components/ui/animated-list"
 import { BentoCard, BentoGrid } from "@/components/ui/bento-grid"
 import { useNavigate } from "react-router-dom"
-import { ReminderModal, NotificationModal } from "./FeatureModals"
 
 const DynamicNotification = ({ name, description, icon, color, time }) => {
   return (

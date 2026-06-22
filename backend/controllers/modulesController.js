@@ -49,10 +49,17 @@ const modulesController = {
       }
 
       const keys = Object.keys(data);
+      // Validate all keys to prevent SQL injection
+      for (let key of keys) {
+        if (!/^[a-zA-Z0-9_]+$/.test(key)) {
+          return res.status(400).json({ message: 'Invalid field name' });
+        }
+      }
+
       const values = Object.values(data);
       const placeholders = keys.map(() => '?').join(', ');
 
-      const query = `INSERT INTO ${module} (${keys.join(', ')}) VALUES (${placeholders})`;
+      const query = `INSERT INTO ${module} (${keys.map(k => '`' + k + '`').join(', ')}) VALUES (${placeholders})`;
       await db.query(query, values);
 
       res.status(201).json({ message: 'Record created successfully' });
@@ -70,7 +77,14 @@ const modulesController = {
       const data = { ...req.body };
       if (Object.keys(data).length === 0) return res.status(400).json({ message: 'No data provided to update' });
 
-      const updates = Object.keys(data).map(key => `${key} = ?`).join(', ');
+      const keys = Object.keys(data);
+      for (let key of keys) {
+        if (!/^[a-zA-Z0-9_]+$/.test(key)) {
+          return res.status(400).json({ message: 'Invalid field name' });
+        }
+      }
+
+      const updates = keys.map(key => '`' + key + '` = ?').join(', ');
       const values = Object.values(data);
       values.push(id); // for the WHERE clause
 

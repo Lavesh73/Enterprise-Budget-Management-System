@@ -35,7 +35,7 @@ const promoteToDivisionHead = async (req, res) => {
 
 const getUsers = async (req, res) => {
   try {
-    const [users] = await db.query('SELECT id, name, email, role FROM users ORDER BY name ASC');
+    const [users] = await db.query('SELECT id, name, email, role, group_id FROM users ORDER BY name ASC');
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);

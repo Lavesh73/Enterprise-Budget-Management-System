@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, Calendar, Car, Briefcase, MessageSquare, HelpCircle, Settings } from 'lucide-react';
 

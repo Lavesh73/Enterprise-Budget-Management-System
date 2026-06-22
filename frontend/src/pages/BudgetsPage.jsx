@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { 
-  IndianRupee, TrendingUp, AlertTriangle, Download, Search, Filter, 
-  Plus, Edit, Trash2, X, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Activity
+  IndianRupee, TrendingUp, AlertTriangle, Download, Search, 
+  Plus, Edit, Trash2, X, ChevronLeft, ChevronRight, Activity
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,

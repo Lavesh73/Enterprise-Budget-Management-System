@@ -191,3 +191,46 @@ exports.updateProfile = async (req, res) => {
       res.status(500).json({ message: 'Server error during profile update' });
     }
   };
+
+exports.updateSettings = async (req, res) => {
+  try {
+    const { email_notifications, theme_preference } = req.body;
+    const userId = req.user.id;
+
+    // Build dynamic update
+    const updates = [];
+    const values = [];
+
+    if (email_notifications !== undefined) {
+      updates.push('email_notifications = ?');
+      values.push(email_notifications);
+    }
+    
+    if (theme_preference !== undefined) {
+      updates.push('theme_preference = ?');
+      values.push(theme_preference);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ message: 'No settings provided' });
+    }
+
+    values.push(userId);
+    const updateQuery = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
+    await require('../config/db').execute(updateQuery, values);
+
+    // Fetch updated user
+    const user = await User.findById(userId);
+
+    res.status(200).json({
+      message: 'Settings updated successfully',
+      settings: {
+        email_notifications: user.email_notifications,
+        theme_preference: user.theme_preference
+      }
+    });
+  } catch (error) {
+    console.error('Update Settings Error:', error);
+    res.status(500).json({ message: 'Server error during settings update' });
+  }
+};

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Bell, Command, User, LogOut, Check, Loader2, Sparkles, LayoutDashboard, Folder, DollarSign, Receipt, Calendar, CalendarMinus, TrendingUp, Settings, HelpCircle, UserCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, Bell, User, LogOut, Check, Loader2, Sparkles, LayoutDashboard, Folder, DollarSign, Receipt, Calendar, CalendarMinus, TrendingUp, Settings, HelpCircle, UserCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";

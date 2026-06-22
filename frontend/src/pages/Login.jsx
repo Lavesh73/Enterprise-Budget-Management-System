@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
@@ -33,17 +33,17 @@ const Login = () => {
       
       const data = await response.json();
       
-      if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+      if (response.ok) {
+        localStorage.setItem('userInfo', JSON.stringify(data));
+        alert('Login successful! Redirecting to Dashboard...');
+        if (data.role === 'admin') navigate('/admin-dashboard');
+        else navigate('/dashboard');
+      } else {
+        setError(data.message || 'Login failed');
       }
-      
-      // Store user info and token
-      localStorage.setItem('userInfo', JSON.stringify(data));
-      // Redirect to dashboard or home
-      alert('Login successful! Redirecting to Dashboard...');
-      navigate('/dashboard'); // We will build this later
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      setError('Server error');
     } finally {
       setLoading(false);
     }

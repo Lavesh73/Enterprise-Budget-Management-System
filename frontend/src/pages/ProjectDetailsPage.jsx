@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import { Activity, Users, ArrowLeft, Calendar, FileText, IndianRupee, Award, UserCheck, Clock, CheckCircle2, TrendingUp, AlertTriangle } from 'lucide-react';
